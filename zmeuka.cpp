@@ -6,21 +6,30 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
+//============================================================================
+// Name        : zmeu.cpp
+// Author      :
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//===========================================================================
 #include <stdlib.h>
 #include "textur.h"
 #include <ctime>
+#include <iostream>
+
+using namespace std;
 
 typedef unsigned short small;
 
+
+
 class Kv // Квадраты, на которые разделено поле
 {
-public:	Kv()
-	{
-		k = 0;
-	}
-	small t; // номер текстуры
-	small k;
-	void KvDraw(); // метод рисования объетка, т.е. квадрата
+public:
+
+	small t; // Параметр, отвечающий за номер текстуры
+	virtual void KvDraw(); // метод рисования объетка, т.е. квадрата
 	small x; // координаты х и у (самые маленькие, т.е. нижнего левого края квадрата)
 	small y;
 
@@ -29,36 +38,85 @@ public:	Kv()
 class Zm : public Kv
 {
 public:
+	small k; // курс
 	Zm()
     {
 		k = 0;
     }
+	void KvDraw();
  void GO(); // метод проверки смерти змейки
 };
+class Knopka : public Kv
+{
+public:
 
-small Kvv = 24; // Размер сторон квадрата
-small KvSh = 18, KvDl = 22; // Квадраты по ширине и длине
-small Sh = KvSh * Kvv , Dl = KvDl * Kvv; // общая ширина и длина в пикселях
-small kyrs = 0; // курс змейки
+	bool s; // булевой параметр, отвечающий за нажатие кнопки. Сначала кнопка не нажата, т.е. он фалс
+
+	Knopka()
+	{
+		s = false;
+	}
+	void Draw(); // Рисуем
+	void Proverkas(); // Проверяем на нажатие
+};
+
+// Переменные и массивы для меню:
+small nomer_min = 0; // Перем., отвечающая за начальную кнопку на опр. странице в меню
+small nomer_max = 2; // Перем., отвечающая за последнию кнопку на опр. странице в меню
+small Xm; // координата х мышки
+small Ym; // коориданат у мышки
+small Dlo = 150; // длинна кнопки
+small Vyso = 50; // высота кнопки
+bool g1 = false; // перем., отвечающая за вызов меню во время игры
+bool down2 = false; // перем., отвечающая за нажатие мышки
+bool g = false; // перем., отвечающая за работу игры.
+
+Knopka kn[8]; // массив, хранящий в себе 9 кнопок (0 + 8)
+
+// Переменные и массивы для игры:
 small HP = 0; // жизни
 small i; // переменная для создание циклов
 small c = 1; //переменная отвечающая за номер последней части змейки
 small roc = 0; // переменная, которая хранит в себе старый курс змейки
 bool down = true; // переменая для создание новых частей змейки
-bool a = true; // переменая, которая при положительном значение позволяет начать игру, при смерти змейки оно становиться тру, при начале игры - фалс
 bool e = true;
+small Kvv = 24; // Размер сторон квадрата
+small KvSh = 18, KvDl = 22; // Квадраты по ширине и длине
+small Sh = KvSh * Kvv , Dl = KvDl * Kvv; // общая ширина и длина в пикселях
+small kyrs; // курс змейки
+bool a = true; // переменая, которая при положительном значение позволяет начать игру, при смерти змейки оно становиться тру, при начале игры - фалс
+
 
 Zm zmeuka[50]; // массив частей змейки, можно сделать и векторный
 
 Kv pol[18][22]; // массив квадратов поля, т.к. поле разделено на квадраты
 Kv Frut; // объект - фрукт
 
+void Knopka::Draw()
+{
+	glBegin(GL_POLYGON);
+//	glTexCoord2f(float(t * 0.1), 0.0);
+	glVertex2f(float(x), float(y + Vyso));
+//	glTexCoord2f(float(t * 0.1 + 0.1), 0.0);
+    glVertex2f(float(x + Dlo), float(y + Vyso));
+//    glTexCoord2f(float(t * 0.1 + 0.1), 1.0);
+ 	glVertex2f(float(x + Dlo), float(y));
+//	glTexCoord2f(float(t * 0.1), 1.0);
+	glVertex2f(float(x), float(y));
+	glEnd();
+}
+
+void Knopka::Proverkas()
+{
+	if((Xm >= x) && (Xm <= x + Dlo) && (Ym >= y) && (Ym <= y + Vyso))
+	// Проверяем координаты мышки.
+	{
+		s = true;
+	}
+}
+
 void Kv::KvDraw()
 {
-	switch(k)
-	{
-	case 0:
-	{
 		glBegin(GL_POLYGON);
 		glTexCoord2f(float(t * 0.1), 0.0);
 		glVertex2f(float(x), float(y + Kvv));
@@ -69,74 +127,92 @@ void Kv::KvDraw()
     	glTexCoord2f(float(t * 0.1), 1.0);
 		glVertex2f(float(x), float(y));
 		glEnd();
-		break;
-	}
-	case 1:
-	{
-		glBegin(GL_POLYGON);
-		glTexCoord2f(float(t * 0.1), 1);
-		glVertex2f(float(x), float(y + Kvv));
-		glTexCoord2f(float(t * 0.1), 0);
-		glVertex2f(float(x + Kvv), float(y + Kvv));
-		glTexCoord2f(float(t * 0.1 + 0.1), 0);
-		glVertex2f(float(x + Kvv), float(y));
-		glTexCoord2f(float(t * 0.1 + 0.1), 1);
-		glVertex2f(float(x), float(y));
-		glEnd();
-        break;
-	}
-	case 2:
-	{
-		glBegin(GL_POLYGON);
-		glTexCoord2f(float(t * 0.1 + 0.1), 1);
-		glVertex2f(float(x), float(y + Kvv));
-		glTexCoord2f(float(t * 0.1), 1);
-		glVertex2f(float(x + Kvv), float(y + Kvv));
-		glTexCoord2f(float(t * 0.1), 0);
-		glVertex2f(float(x + Kvv), float(y));
-		glTexCoord2f(float(t * 0.1 + 0.1), 0);
-		glVertex2f(float(x), float(y));
-		glEnd();
-		break;
-	}
-	case 3:
-	{
-		glBegin(GL_POLYGON);
-		glTexCoord2f(float(t * 0.1 + 0.1), 0);
-	    glVertex2f(float(x), float(y + Kvv));
-	    glTexCoord2f(float(t * 0.1 + 0.1), 1);
-		glVertex2f(float(x + Kvv), float(y + Kvv));
-		glTexCoord2f(float(t * 0.1), 1);
-		glVertex2f(float(x + Kvv), float(y));
-		glTexCoord2f(float(t * 0.1), 0);
-		glVertex2f(float(x), float(y));
-		glEnd();
-		break;
-	}
-	}
 }
 
-void Zm::GO()
+void Zm::KvDraw() // рисуем с разных ракурсов
 {
+	switch(k)
+		{
+		case 0:
+		{
+			glBegin(GL_POLYGON);
+			glTexCoord2f(float(t * 0.1), 0.0);
+			glVertex2f(float(x), float(y + Kvv));
+			glTexCoord2f(float(t * 0.1 + 0.1), 0.0);
+		    glVertex2f(float(x + Kvv), float(y + Kvv));
+		    glTexCoord2f(float(t * 0.1 + 0.1), 1.0);
+	     	glVertex2f(float(x + Kvv), float(y));
+	    	glTexCoord2f(float(t * 0.1), 1.0);
+			glVertex2f(float(x), float(y));
+			glEnd();
+			break;
+		}
+		case 1:
+		{
+			glBegin(GL_POLYGON);
+			glTexCoord2f(float(t * 0.1), 1);
+			glVertex2f(float(x), float(y + Kvv));
+			glTexCoord2f(float(t * 0.1), 0);
+			glVertex2f(float(x + Kvv), float(y + Kvv));
+			glTexCoord2f(float(t * 0.1 + 0.1), 0);
+			glVertex2f(float(x + Kvv), float(y));
+			glTexCoord2f(float(t * 0.1 + 0.1), 1);
+			glVertex2f(float(x), float(y));
+			glEnd();
+	        break;
+		}
+		case 2:
+		{
+			glBegin(GL_POLYGON);
+			glTexCoord2f(float(t * 0.1 + 0.1), 1);
+			glVertex2f(float(x), float(y + Kvv));
+			glTexCoord2f(float(t * 0.1), 1);
+			glVertex2f(float(x + Kvv), float(y + Kvv));
+			glTexCoord2f(float(t * 0.1), 0);
+			glVertex2f(float(x + Kvv), float(y));
+			glTexCoord2f(float(t * 0.1 + 0.1), 0);
+			glVertex2f(float(x), float(y));
+			glEnd();
+			break;
+		}
+		case 3:
+		{
+			glBegin(GL_POLYGON);
+			glTexCoord2f(float(t * 0.1 + 0.1), 0);
+		    glVertex2f(float(x), float(y + Kvv));
+		    glTexCoord2f(float(t * 0.1 + 0.1), 1);
+			glVertex2f(float(x + Kvv), float(y + Kvv));
+			glTexCoord2f(float(t * 0.1), 1);
+			glVertex2f(float(x + Kvv), float(y));
+			glTexCoord2f(float(t * 0.1), 0);
+			glVertex2f(float(x), float(y));
+			glEnd();
+			break;
+		}
+		}
+}
+
+void Proverka()
+{
+	if(HP != 0)
 	for(i = 1; i <= HP; ++i)	// проверяет каждую часть
 	{
-	if(((x == zmeuka[i].x) && (y == zmeuka[i].y)) || ((x < 0) || (x > Dl) || (y < 0) || (y > Sh))) // если змейка выйдет за пределы поля или же координаты одной головы будут равны координаты любой другой части
+	if(((zmeuka[0].x == zmeuka[i].x) && (zmeuka[0].y == zmeuka[i].y)) || ((zmeuka[0].x < 0) || (zmeuka[0].x > Dl) || (zmeuka[0].y < 0) || (zmeuka[0].y > Sh))) // если змейка выйдет за пределы поля или же координаты одной головы будут равны координаты любой другой части
 	{
 		a = true; //ставим начальные значения переменых для новой игры
-	   HP = 2;
+	   HP = 0;
 	   down = true;
 	   e = true;
 	}
 	}
-}
-
-void Pole() // рисуем квадраты
-{
-	for(i = 0; i < KvSh; i++) // рисуем каждый объект-квадрат поля поотдельности
+	else
 	{
-		for(small x = 0; x < KvDl; x++)
+		if((zmeuka[0].x < 0) || (zmeuka[0].x > Dl) || (zmeuka[0].y < 0) || (zmeuka[0].y > Sh))
 		{
-		  pol[i][x].KvDraw();
+			a = true; //ставим начальные значения переменых для новой игры
+		    HP = 0;
+			down = true;
+		    e = true;
 		}
 	}
 }
@@ -152,11 +228,7 @@ void zmeu()
 		a = false;
 	}
     Kyr2(); // движение и смена текстуры при поворотах, а так же проверка еды на съедение
-   zmeuka[0].GO(); // проверка змейки на смерть
-  for(i = 0; i <= HP; i++) // рисуем каждый объект поочередно
-	{
-		zmeuka[i].KvDraw();
-   }
+    Proverka(); // проверка змейки на смерть
 }
 
 void frut() // создание фрукта
@@ -166,12 +238,11 @@ void frut() // создание фрукта
   {
   small Nomery = rand() % int(KvSh); // рандомно выбираеться номер любого квадрата на карте и забираеться его х и у, а потом присваеваем переменной "доне" значение фалс, но оно измениться после съедение фрукта змейкой
   small Nomerx = rand() % int(KvDl);
-  Frut.t = 7;
   Frut.x = pol[Nomery][Nomerx].x;
   Frut.y = pol[Nomery][Nomerx].y;
+  Frut.t = 7;
   e = false;
   }
-   Frut.KvDraw(); // рисуем фрукт
 }
 
 void Kyr2()
@@ -215,61 +286,33 @@ void Kyr2()
 	roc = kyrs;
 }
 
-void display()
+void game()
 {
-  glClear(GL_COLOR_BUFFER_BIT);
   glEnable(GL_TEXTURE_2D);
-
-  Pole();
+  for(i = 0; i < KvSh; i++) // рисуем каждый объект-квадрат поля поотдельности
+  {
+  	for(small x = 0; x < KvDl; x++)
+  	{
+  	  pol[i][x].KvDraw();
+  	}
+  }
   glEnable(GL_ALPHA_TEST);     //разрешаем альфа-тест
   glAlphaFunc(GL_GREATER,0.0);  // устанавливаем параметры
   glEnable (GL_BLEND);         //Включаем режим смешивания цвето
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ; //параметры смешивания
-  frut();
-  zmeu();
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ; //параметры смешивания
+  Frut.KvDraw(); // рисуем фрукт
+  for(i = 0; i <= HP; i++) // рисуем каждый объект змеи поочередно
+  {
+	  zmeuka[i].KvDraw();
+  }
   glDisable(GL_BLEND);
   glDisable(GL_ALPHA_TEST);
   glDisable(GL_TEXTURE_2D);
-  glutSwapBuffers();
 }
 
-void Timer(int) // обновляем экран каждые 0.125 секунды + пробигаемся по функции диспреля
+void begin() // функция, отвечающая за начало игры.
 {
-	glutPostRedisplay();
-    glutTimerFunc(125, Timer, 0);
-}
-
-void Keyboard(unsigned char key, int x, int y) // клавишы клавиатуры
-{
-  switch(key)
-  {
-  case 'w': kyrs = 0;
-  break;
-  case 'd': kyrs = 1;
-   break;
-  case 'a': kyrs = 3;
-   break;
-  case 's': kyrs = 2;
-  break;
-  }
-}
-
-int main(int argc, char **argv)
-{
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize(float(Dl), float(Sh));
-  glutInitWindowPosition(1700, 950);
-  glutCreateWindow("zmeuka(alpha)");
-  glClearColor(1.0, 1.0, 1.0, 0.0);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0.0, float(Dl), 0.0, float(Sh), -1.0, 1.0);
-  glMatrixMode(GL_MODELVIEW);
-  glutDisplayFunc(display);
-  glutTimerFunc(125, Timer, 0);
-  glutKeyboardFunc(Keyboard);
-  loadTextur1();
+  loadTextur1(); // загружаем текстуры
   srand(time(0));
   for(i = 0; i < KvSh; i++) // опр. координаты каждого элемента + её текстуры
   {
@@ -278,6 +321,205 @@ int main(int argc, char **argv)
 	  pol[i][x].t = rand() % 5;
 	  pol[i][x].y = float(i * Kvv);
 	  pol[i][x].x = float(x * Kvv);
+	}
+  }
+  kyrs = 0; // задаем начальный курс, равным 0 (вверх)
+  for(small i = nomer_min; i <= nomer_max; i++)
+  {
+	  kn[i].x = 189;
+	  kn[i].y = kn[i - 1].y + 75;
+	  kn[6].y = 60;
+  }
+  a = true;
+  g1 = true;
+  g = true;
+}
+
+void menu1()
+{
+	if(down2)
+	for(small i = nomer_min; i <= nomer_max; i++)
+	{
+		kn[i].Proverkas();
+	}
+	if(nomer_min == 0)
+	{
+	if(kn[0].s)
+		exit(0);
+	if(kn[2].s)
+	{
+		kn[2].s = false;
+		nomer_min = 3; nomer_max = 5;
+		for(small i = 0; i <= 2; i++)
+			kn[i].s = false;
+		Xm = 0;
+		Ym = 0;
+		glColor3ub(0, 250, 0);
+	}
+	}
+	else
+	{
+	if(kn[3].s)
+	{
+		kn[3].s = false;
+		glColor3ub(250, 0, 0);
+		nomer_min = 0; nomer_max = 2;
+		for(small i = 3; i <= 5; i++)
+           kn[i].s = false;
+		Xm = 0;
+		Ym = 0;
+	}
+	if(kn[4].s)
+	{
+		kn[4].s = false;
+		Xm = 0;
+		Ym = 0;
+	}
+	if(kn[5].s)
+	{
+		kn[5].s = false;
+		g = true;
+		nomer_min = 6;
+		nomer_max = 8;
+		begin();
+	}
+	}
+}
+
+void menu2_logic()
+{
+	if(down2)
+	for( i = nomer_min; i <= nomer_max; i++)
+	{
+		kn[i].Proverkas();
+	}
+	if(kn[6].s)
+		exit(0);
+	if(kn[7].s)
+	{
+		g = false;
+		g1 = false;
+		nomer_min = 0;
+		nomer_max = 2;
+		kn[7].s = false;
+		glColor3ub(250, 0, 0);
+	}
+	if(kn[8].s)
+	{
+		kn[8].s = false;
+		g1 = true;
+		g = true;
+		glColor3ub(0, 250, 0);
+	}
+}
+
+void logic()
+{
+	if(g)
+		if(g1)
+		{
+			frut();
+			zmeu();
+		}
+		else
+		{
+			menu2_logic();
+		}
+	else
+		menu1();
+}
+
+void display() // функция, которая все рисует
+{
+	glClear(GL_COLOR_BUFFER_BIT);
+	if(g)
+		if(g1)
+	 game();
+    	else
+	 for(i = nomer_min; i <= nomer_max; i++)
+	{
+		glColor3ub(250, 0, 0);
+		kn[i].Draw();
+	}
+    else
+    for(i = nomer_min; i <= nomer_max; i++)
+	{
+		kn[i].Draw();
+	}
+	glutSwapBuffers();
+}
+
+void MousePressed(int button, int state, int ax, int ay)
+{
+    down2 = button== GLUT_LEFT_BUTTON && state ==GLUT_LEFT;
+    if(down2)
+    {
+    	Xm= ax;
+        Ym= Sh - ay;
+    }
+}
+
+
+void Timer(int)
+{
+	logic(); // функция, которая обрабатывает все данные, т.е. отвечает за логику игры
+	display(); // функция, которая все рисует
+    glutTimerFunc(125, Timer, 0);
+}
+
+void Keyboard(unsigned char key, int x, int y) // клавишы клавиатуры
+{
+  switch(key)
+  {
+  case 87:
+  case 119: kyrs = 0;
+  break;
+  case 68:
+  case 100: kyrs = 1;
+   break;
+  case 65:
+  case 97: kyrs = 3;
+   break;
+  case 83:
+  case 115: kyrs = 2;
+  break;
+  case 27: g1 = false; nomer_min = 6; nomer_max = 8; // если нажимается Esc, то выводится меню3
+  break;
+  }
+}
+
+int main(int argc, char** argv)
+{
+	glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(float(Dl), float(Sh));
+    glutInitWindowPosition(700, 950);
+    glutCreateWindow("zmeuka(alpha)");
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0.0, float(Dl), 0.0, float(Sh), -1.0, 1.0);
+    glMatrixMode(GL_MODELVIEW);
+    glutDisplayFunc(display);
+    glutTimerFunc(125, Timer, 0);
+    glutKeyboardFunc(Keyboard);
+    glutMouseFunc(MousePressed);
+    for(small i = 0; i <= 2; i++)
+	{
+    	kn[i].x = 189;
+    	kn[i].y = kn[i - 1].y + 75;
+    	kn[0].y = 60;
+	}
+
+   for(small i = 3; i <= 5; i++)
+    {
+      	kn[i].x = 189;
+        kn[i].y = kn[i - 1].y + 75;
+       	kn[3].y = 60;
+    }
+    glColor3ub(250, 0, 0);
+    glutMainLoop();
+} * Kvv);
 	}
   }
   kyrs = 0;
